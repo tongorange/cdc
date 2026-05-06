@@ -8,7 +8,9 @@ def collect_stats(data_dir: Path) -> dict:
     store = ChunkStore(data_dir)
 
     files_meta = meta.list_files()
+    snapshots_meta = meta.list_snapshots()
     file_count = len(files_meta)
+    snapshot_count = len(snapshots_meta)
     logical_size = sum(m["size"] for m in files_meta.values())
     chunk_refs = meta.get_all_chunks()
     total_chunk_refs = len(chunk_refs)
@@ -19,10 +21,13 @@ def collect_stats(data_dir: Path) -> dict:
     physical_size = 0
     for h in unique_chunks:
         try:
-            physical_size += store.get_chunk(h).__len__()
+            physical_size += store.get_chunk_size(h)
         except FileNotFoundError:
             # 一致性错误，忽略
             pass
+
+    stored_chunks = set(store.list_chunk_hashes())
+    orphan_chunks = stored_chunks - unique_chunks
 
     saving_ratio = 0.0
     if logical_size > 0:
@@ -35,11 +40,14 @@ def collect_stats(data_dir: Path) -> dict:
 
     return {
         "file_count": file_count,
+        "snapshot_count": snapshot_count,
         "logical_size": logical_size,
         "physical_size": physical_size,
         "chunk_count_total": total_chunk_refs,
         "chunk_count_unique": unique_count,
         "duplicate_chunk_refs": duplicate_refs,
+        "stored_chunk_count": len(stored_chunks),
+        "orphan_chunk_count": len(orphan_chunks),
         "saving_ratio": saving_ratio,
         "chunking_methods": chunking_methods,
     }

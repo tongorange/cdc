@@ -1,5 +1,4 @@
 from pathlib import Path
-import os
 
 class ChunkStore:
     """Store unique chunks in <root>/chunks/xx/xxxxxxxx..."""
@@ -38,3 +37,25 @@ class ChunkStore:
         if not path.exists():
             raise FileNotFoundError(f"Chunk {chunk_hash} not found")
         return path.read_bytes()
+
+    def get_chunk_size(self, chunk_hash: str) -> int:
+        self._validate_hash(chunk_hash)
+        path = self.chunk_path(chunk_hash)
+        if not path.exists():
+            raise FileNotFoundError(f"Chunk {chunk_hash} not found")
+        return path.stat().st_size
+
+    def delete_chunk(self, chunk_hash: str) -> bool:
+        self._validate_hash(chunk_hash)
+        path = self.chunk_path(chunk_hash)
+        if not path.exists():
+            return False
+        path.unlink()
+        try:
+            path.parent.rmdir()
+        except OSError:
+            pass
+        return True
+
+    def list_chunk_hashes(self) -> list[str]:
+        return sorted(path.name for path in self.chunks_dir.glob("*/*") if path.is_file())

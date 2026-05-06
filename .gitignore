@@ -1,0 +1,28 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tool / editor traces
+.DS_Store
+
+# Local matplotlib cache
+.matplotlib/
+
+# Temporary experiment outputs
+figures/
+results/
+results/restored/
+results/stores/
+
+# Legacy experiment directory
+exp_data/
+
+# Generated datasets
+test_data/
